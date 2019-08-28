@@ -1,5 +1,7 @@
 from flask import Flask
 import random
+import requests
+
 app = Flask(__name__)
 @app.route('/')
 def home():
@@ -11,7 +13,7 @@ def home():
 
 @app.route('/name')
 def name():
-    return '오은애'
+    return '이수연'
 
 # Variable routing : <>
 # 사용자가 입력한 값을 name 변수에 대입
@@ -36,7 +38,24 @@ def lotto():
     # .sort : 원본까지 정렬
     # sorted() : 복사본만 정렬
     winner = [3,5,12,13,33,39]
-    user = sorted(random.sample(range(1,46),6))
+    #result = sorted(random.sample(range(1,46),6))
+
+    # 1. requests 통해 요청 보내기
+    url = 'https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo=873'
+    response = requests.get(url)
+    res_dict = response.json()
+    # 이제 dict처럼 다룰 수 있는 상태
+
+    print(res_dict) 
+    #print(res_dict['drwtNo1']) 
+
+    # 1등 번호 6개가 담긴 result라는 list를 출력
+    result = []
+    for i in range(1,7):
+        #idx = 'drwtNo'+str(i)
+        result.append(res_dict[f'drwtNo{i}'])
+    
+    #print(result)
 
     # 만약 6개의 숫자가 모두 일치하면 1등
     # 만약 5개의 숫자가 일치하면 3등
@@ -45,10 +64,10 @@ def lotto():
 
     # set : 집합 자료구조
     # & : 교집합
-    cnt = set(winner) & set(result)
-    for i in winner:
-        if i in user :
-            cnt += 1
+    cnt = len(set(winner) & set(result))
+    # for i in winner:
+    #     if i in result :
+    #         cnt += 1
     res = '꽝'
     if cnt == 6 :
         res ='1등'
@@ -58,4 +77,6 @@ def lotto():
         res = '4등'
     elif cnt == 3:
         res = '5등'
-    return f'{user,res}'
+
+    #return str(result)
+    return f'{result,res}'
